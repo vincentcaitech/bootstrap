@@ -50,6 +50,7 @@ const DefaultType = {
   html: 'boolean',
   selector: '(string|boolean)',
   placement: '(string|function)',
+  offset: '(array|string|function)',
   container: '(string|element|boolean)',
   fallbackPlacements: 'array',
   boundary: '(string|element)',
@@ -80,6 +81,7 @@ const Default = {
   html: false,
   selector: false,
   placement: 'top',
+  offset: [0, 0],
   container: false,
   fallbackPlacements: ['top', 'right', 'bottom', 'left'],
   boundary: 'clippingParents',
@@ -473,6 +475,20 @@ class Tooltip extends BaseComponent {
     return context
   }
 
+  _getOffset() {
+    const { offset } = this.config
+
+    if (typeof offset === 'string') {
+      return offset.split(',').map(val => Number.parseInt(val, 10))
+    }
+
+    if (typeof offset === 'function') {
+      return popperData => offset(popperData, this._element)
+    }
+
+    return offset
+  }
+
   _getPopperConfig(attachment) {
     const defaultBsConfig = {
       placement: attachment,
@@ -485,9 +501,15 @@ class Tooltip extends BaseComponent {
           }
         },
         {
+          name: 'offset',
+          options: {
+            offset: this._getOffset()
+          }
+        },
+        {
           name: 'preventOverflow',
           options: {
-            rootBoundary: this.config.boundary
+            boundary: this.config.boundary
           }
         },
         {
